@@ -1,4 +1,5 @@
 # Get-DiskSpace
+*This script is for a lab environment and meant for learning purposes only*
 
 ## What does it do
 
@@ -61,3 +62,36 @@ Get-DiskSpace -Name DC01
 ## Notes
 
 Work in progress — configurable thresholds and pipeline friendly output coming in a future iteration. Pairs well with `Get-ADComputerState` for targeting online machines before checking disk health.
+
+## Sample Output
+
+> [!Note] `Get-ADComputerState` is a custom script (it pulls all AD computers and displays if it's online or offline)
+
+<img width="652" height="444" alt="image" src="https://github.com/user-attachments/assets/f8abe8cf-b0b6-48e3-b1e0-b042be7d86c3" />
+
+```
+PS C:\Logs> get-adcomputerstate | where {$_.status -eq 'online'} | get-diskspace
+A8-7600-1
+Drive Size(GB) Free(GB) Free%
+----- -------- -------- -----
+C:    110.74    39.74   35.89%
+G:    0 0       %
+DC01
+Drive Size(GB) Free(GB) Free%
+----- -------- -------- -----
+C:    79.37     62.73   79.03%
+THINKPAD-T470
+Drive Size(GB) Free(GB) Free%
+----- -------- -------- -----
+C:    237.86    64      26.91%
+D:    238.47    50.73   21.27%
+E:    15        5.45    36.32%
+G:    15        2.16    14.37%
+J:    15        12.25   81.69%
+DC02
+Drive Size(GB) Free(GB) Free%
+----- -------- -------- -----
+C:    59.37     48.07   80.97%
+D:    0.74      0       0%
+PS C:\Logs>
+```
