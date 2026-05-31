@@ -1,5 +1,6 @@
 <#
   Just a simple tool for checking a computer's disk space usage
+  Data output is not pipe friendly, useful only for viasual check
 #>
 
 function Get-DiskSpace {
@@ -7,7 +8,7 @@ function Get-DiskSpace {
   param (
     [alias('Name')]
     [Parameter(ValueFromPipelineByPropertyName = $true)]
-    [string[]]$ComputerName = "$env:COMPUTERNAME"
+    [string[]]$ComputerName = $env:COMPUTERNAME
   )
 
   BEGIN {}
@@ -19,7 +20,7 @@ function Get-DiskSpace {
 
       try {
 
-        # This violates "dry" principle but its the least complicated approach
+        # This violates "dry" principle but its the least complicated approach (i tried function call but it didn't work)
         # This condition is for checking localhost "locally" bacause if the command is invoked - Google Drive is invalidated
         if ($Computer -eq "$env:COMPUTERNAME") {
           $Result = Get-CimInstance -ClassName Win32_LogicalDisk -ErrorAction Stop | Where-Object { $_.DriveType -eq 3 } |
@@ -40,16 +41,29 @@ function Get-DiskSpace {
           }
         }
 
-        # Looking complicated because  of the condition needed to display different colors depending on disk remaining space
+        # Looks complicated because  of the condition needed to display different colors depending on disk remaining space
 
-        # Display
+        # ==========================================
+        #                 DISPLAY 
+        # ==========================================
         Write-Host "$Computer" -ForegroundColor Cyan
-        Write-Host "Drive Size(GB) Free(GB) Free%"
-        Write-Host "----- -------- -------- -----"
+
+        # Trying a new approach in colum alignment (using padding)
+        Write-Host $("Drive".PadRight(7) + "Size(GB)".PadLeft(10) + "Free(GB)".PadLeft(12) + "Free%".PadLeft(9)) -ForegroundColor Gray
+        Write-Host $("-----".PadRight(7) + "--------".PadLeft(10) + "--------".PadLeft(12) + "-----".PadLeft(9)) -ForegroundColor Gray
 
         # Loops through logical Disk Drives
         foreach ($Disk in $Result) {
-          $msg = "$($Disk.DeviceID)    $($Disk.SizeGB)`t$($Disk.FreeGB)`t$($Disk.FreePercent)%"
+
+          #Adding padding to the data - it will line up with the header
+          $DriveCol = "$($Disk.DeviceID)".PadRight(7)
+          $SizeCol = "$($Disk.SizeGB)".PadLeft(10)
+          $FreeCol = "$($Disk.FreeGB)".PadLeft(12)
+          $PctCol = "$($Disk.FreePercent)%".PadLeft(9)
+
+         
+          # construct the psuedo table
+          $msg = "$DriveCol$SizeCol$FreeCol$PctCol"
 
           # red if disk space is less than 15%
           # yellow if less than 35%
