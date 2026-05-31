@@ -22,7 +22,8 @@ function Get-DiskSpace {
         # This violates "dry" principle but its the least complicated approach
         # This condition is for checking localhost "locally" bacause if the command is invoked - Google Drive is invalidated
         if ($Computer -eq "$env:COMPUTERNAME") {
-          $Result = Get-CimInstance -ClassName Win32_LogicalDisk -ErrorAction Stop | Select-Object DeviceID,
+          $Result = Get-CimInstance -ClassName Win32_LogicalDisk -ErrorAction Stop | Where-Object { $_.DriveType -eq 3 } |
+          Select-Object DeviceID,
           @{n = 'SizeGB'; e = { [math]::Round($_.Size / 1GB, 2) } },
           @{n = 'FreeGB'; e = { [math]::Round($_.FreeSpace / 1GB, 2) } },
           @{n = 'FreePercent'; e = { [math]::Round(($_.FreeSpace / $_.Size) * 100, 2) } } -ErrorAction Stop
@@ -31,7 +32,8 @@ function Get-DiskSpace {
           # This is for remote
           # -Credential $cred is intentional, not a mistake. Local Admin + separate domain = Kerberos doesn't work
           $Result = Invoke-Command -ComputerName $Computer -Credential $cred -ScriptBlock {
-            Get-CimInstance -ClassName Win32_LogicalDisk -ErrorAction Stop | Select-Object DeviceID,
+            Get-CimInstance -ClassName Win32_LogicalDisk -ErrorAction Stop | Where-Object { $_.DriveType -eq 3 } |
+            Select-Object DeviceID,
             @{n = 'SizeGB'; e = { [math]::Round($_.Size / 1GB, 2) } },
             @{n = 'FreeGB'; e = { [math]::Round($_.FreeSpace / 1GB, 2) } },
             @{n = 'FreePercent'; e = { [math]::Round(($_.FreeSpace / $_.Size) * 100, 2) } }
